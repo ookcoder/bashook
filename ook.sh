@@ -7,6 +7,7 @@ nflag=""
 eflag=""
 space="k "
 sep="0"
+encode=""
 
 usage() { 
   echo "Usage: $0 ...strings [-n] [-e]" 1>&2; 
@@ -38,14 +39,12 @@ find() {
   return -1
 }
 
-
 while getopts "ne" opt; do
   case $opt in
     n) nflag="true";;
     e) eflag="true";;
     *) 
        usage
-        #echo "Unexpected flag ${opt}" >&2
        exit 1
   esac
 done
@@ -60,11 +59,12 @@ fi
 s=""
 if [[ $1 =~ ^([Oo0k\s])+$ ]] && [[ ! $eflag = "true" ]]; 
 then
+  encode="false"
   numWords=$#
   for (( i=1; i<=$numWords; i++ )); 
   do
     str=${!i}
-    str=$(echo $str | sed "s/0/ /g")
+    str=$(echo -e $str | sed "s/0/ /g")
     IFS=" " read -a codes <<< "$str"
     numCodes=${#codes[*]}
     for (( j=0; j<$numCodes; j++ )); 
@@ -80,7 +80,8 @@ then
   done
 else
   # encode
-  # word
+  # every word
+  encode="true"
   numWords=$#
   for (( i=1; i<=$numWords; i++ )); 
   do
@@ -91,7 +92,7 @@ else
     then
       s="$s$sep"
     fi
-    # char
+    # everychar
     for (( j=0; j<$varLen; j++ )); 
     do
       find "chars" "${var:$j:1}"
@@ -103,9 +104,21 @@ else
   done
 fi
 
-if [[ ! $nflag = "true" ]]; then
-  echo -e $s | pbcopy 
+# mode message
+mode="decode"
+if [[ $encode = "true"  ]]; then
+  mode="encode"
 fi
+if [[ $s = "" ]]; then
+  mode="$mode (ambiguous input)"
+fi
+echo "Mode: $mode"
 
-echo $s
+if [[ ! $nflag = "true" ]]; then
+  # copy to clip
+  echo "Copied to clipboard."
+  echo -e $s | pbcopy 
+else
+  echo $s
+fi
 
