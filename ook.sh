@@ -11,7 +11,7 @@ encode=""
 
 usage() { 
   echo "Usage: $0 ...strings [-n] [-e]" 1>&2; 
-  echo "By defaul strings that looks encoded will be decoded." 1>&2;
+  echo "By default strings that looks encoded will be decoded." 1>&2;
   exit 1; 
   }
 
